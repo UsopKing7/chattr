@@ -1,0 +1,38 @@
+services:
+  chattr:
+    container_name: chattr
+    build: .
+    ports:
+      - 3333:3333
+    restart: always
+    env_file:
+      - .env
+    command: ["./command.sh"]
+    depends_on:
+      - db
+  
+  db:
+    container_name: chattr_psql
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chattr_psql
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+  redis:
+    container_name: chattr_redis
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:

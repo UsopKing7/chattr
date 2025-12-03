@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  PROPIETARIO
+}
+
+// ----------------------
+// MODELS
+// ----------------------
+model User {
+  id_user           String       @id @default(ulid())
+  username          String       @unique
+  email             String       @unique
+  password          String
+  roles             UserRole[]
+  messages          Message[]
+  ownedChannels     Channel[]    @relation("UserChannels")
+  reportsMade       Report[]     @relation("UserReports")
+  bans              Ban[]        @relation("UserBans")
+  isOnline          Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Role {
+  id_rol    String      @id @default(ulid())
+  name      RoleType    
+  users     UserRole[]
+}
+
+model UserRole {
+  id_userRole String   @id @default(ulid())
+  user        User     @relation(fields: [id_user], references: [id_user])
+  id_user     String
+  role        Role     @relation(fields: [id_rol], references: [id_rol])
+  id_rol      String
+
+  @@unique([id_user, id_rol])
+}
+
+model Channel {
+  id_channel    String       @id @default(ulid())
+  name          String       @unique
+  description   String?
+  owner         User         @relation("UserChannels", fields: [id_user_owner], references: [id_user])
+  id_user_owner String
+  messages      Message[]
+  bans          Ban[]        @relation("ChannelBans")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Message {
+  id_message   String       @id @default(ulid())
+  content      String
+  user         User         @relation(fields: [id_user], references: [id_user])
+  id_user      String
+  channel      Channel      @relation(fields: [id_channel], references: [id_channel])
+  id_channel   String
+  deleted      Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  reports      Report[]     @relation("MessageReports")
+}
+
+model Report {
+  id_report         String   @id @default(ulid())
+  message           Message  @relation("MessageReports", fields: [id_message], references: [id_message])
+  id_message        String
+  reportedBy        User     @relation("UserReports", fields: [id_user_reporter], references: [id_user])
+  id_user_reporter  String
+  reason            String
+  resolved          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+}
+
+model Ban {
+  id_ban       String   @id @default(ulid())
+  user         User     @relation("UserBans", fields: [id_user], references: [id_user])
+  id_user      String
+  channel      Channel  @relation("ChannelBans", fields: [id_channel], references: [id_channel])
+  id_channel   String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
