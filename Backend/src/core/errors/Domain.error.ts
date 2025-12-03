@@ -4,3 +4,10 @@ export class DomainError extends Error {
     this.name = 'DomainError'
   }
 }
+
+export class DomainErrorChannel extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DomainErrorChannel'
+  }
+}
