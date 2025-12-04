@@ -6,7 +6,7 @@ import { prisma } from '../../../../shared/configurations/db'
 
 export class ChannelPrisma implements IChannelRepository {
   async create(data: Channel): Promise<Channel> {
-    const created = await prisma.$transaction(async prisma => {
+    return await prisma.$transaction(async prisma => {
       const user = await prisma.user.findFirst({
         where: { id_user: data.id_user_owner, isOnline: true }
       })
@@ -28,22 +28,21 @@ export class ChannelPrisma implements IChannelRepository {
 
       if (!role) throw new Error('Role not found')
 
-      await prisma.userRole.create({
+      await prisma.userRole.createMany({
         data: {
-          id_user: created.id_user_owner,
+          id_user: channel.id_user_owner,
           id_rol: role.id_rol
-        }
+        },
+        skipDuplicates: true
       })
 
-      return channel
+      return new Channel(
+        new NameOV(channel.name),
+        channel.description as string,
+        channel.id_user_owner,
+        channel.id_channel
+      )
     })
-
-    return new Channel(
-      new NameOV(created.name),
-      created.description as string,
-      created.id_user_owner,
-      created.id_channel
-    )
   }
 
   async findByName(name: string): Promise<Channel | null> {
