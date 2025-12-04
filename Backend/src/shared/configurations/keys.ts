@@ -1,3 +1,4 @@
 export const KEY = {
-  users: 'users'
+  users: 'users',
+  channel: 'channel'
 }
